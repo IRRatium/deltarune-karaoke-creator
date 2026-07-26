@@ -1,0 +1,1473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Karaoke — Flower Man</title>
+<style>
+  @font-face {
+    font-family: "DTFont";
+    src: url("dt-font.otf") format("opentype");
+    font-display: block;
+  }
+  
+  * { box-sizing: border-box; }
+  
+  body {
+    margin: 0;
+    padding: 0;
+    background: #0f1117;
+    color: #e2e8f0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+  }
+
+  /* Canvas Section Container */
+  .canvas-wrapper {
+    position: relative;
+    width: 100vw;
+    background: #060913;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.8);
+    border-bottom: 2px solid #1e293b;
+    overflow: hidden;
+  }
+
+  canvas {
+    display: block;
+    width: 100vw;
+    max-width: 100%;
+    height: auto;
+    max-height: 70vh;
+    aspect-ratio: 4 / 3;
+    object-fit: contain;
+  }
+
+  /* Control Panels Container */
+  #main-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 1100px;
+    padding: 20px;
+    gap: 16px;
+  }
+
+  /* Language Switcher Bar */
+  .lang-bar {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    background: #182232;
+    border: 1px solid #334155;
+    padding: 6px 12px;
+    border-radius: 8px;
+    gap: 10px;
+  }
+
+  .lang-bar-label {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #94a3b8;
+    letter-spacing: 0.5px;
+  }
+
+  .lang-toggle-group {
+    display: flex;
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    padding: 2px;
+  }
+
+  .lang-btn {
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #94a3b8;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .lang-btn.active {
+    color: #ffffff;
+    background: #2563eb;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  }
+
+  /* Control Panels */
+  .panel {
+    width: 100%;
+    background: #161e2e;
+    border: 1px solid #283548;
+    border-radius: 10px;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .panel-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #94a3b8;
+    border-bottom: 1px solid #283548;
+    padding-bottom: 6px;
+    margin-bottom: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  /* UI Elements */
+  button, label.btn-label {
+    background: #1e293b;
+    color: #f8fafc;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+  }
+
+  button:hover, label.btn-label:hover {
+    background: #334155;
+    border-color: #475569;
+  }
+
+  button:active { transform: translateY(1px); }
+
+  button.primary {
+    background: #2563eb;
+    border-color: #3b82f6;
+  }
+
+  button.primary:hover {
+    background: #1d4ed8;
+    border-color: #60a5fa;
+  }
+
+  input[type=file] { display: none; }
+
+  #time {
+    font-family: 'Consolas', monospace;
+    font-size: 14px;
+    color: #cbd5e1;
+    min-width: 120px;
+    text-align: center;
+  }
+
+  input[type=range] {
+    flex: 1;
+    accent-color: #3b82f6;
+    cursor: pointer;
+  }
+
+  .color-picker-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    background: #0f172a;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid #283548;
+  }
+
+  input[type=color] {
+    border: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    background: transparent;
+  }
+
+  select {
+    background: #0f172a;
+    color: #fff;
+    border: 1px solid #334155;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    outline: none;
+  }
+
+  select:focus {
+    border-color: #3b82f6;
+  }
+
+  /* Preset Selector Box */
+  .preset-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #0f172a;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid #283548;
+    width: 100%;
+  }
+
+  .preset-bar label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #3b82f6;
+  }
+
+  /* Editors Grid */
+  .editor-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 12px;
+    margin-top: 10px;
+  }
+
+  .editor-box {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .editor-box label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #94a3b8;
+  }
+
+  textarea {
+    width: 100%;
+    height: 180px;
+    background: #090d16;
+    color: #38bdf8;
+    border: 1px solid #283548;
+    border-radius: 6px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 12px;
+    padding: 10px;
+    resize: vertical;
+    line-height: 1.4;
+  }
+
+  textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+  }
+
+  details {
+    width: 100%;
+    background: #161e2e;
+    border-radius: 8px;
+    border: 1px solid #283548;
+    padding: 10px 14px;
+  }
+
+  summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: #cbd5e1;
+    user-select: none;
+  }
+
+  summary:hover { color: #fff; }
+</style>
+</head>
+<body>
+
+<!-- Canvas Container -->
+<div class="canvas-wrapper" id="canvasBg">
+  <canvas id="cv" width="1280" height="960"></canvas>
+</div>
+
+<div id="main-container">
+
+  <!-- Language Switcher -->
+  <div class="lang-bar">
+    <span class="lang-bar-label" data-i18n="langLabel">Interface Language:</span>
+    <div class="lang-toggle-group">
+      <button class="lang-btn active" id="btnLangEN">English</button>
+      <button class="lang-btn" id="btnLangRU">Русский</button>
+    </div>
+  </div>
+
+  <!-- Primary Controls -->
+  <div class="panel">
+    <div class="row">
+      <label class="btn-label">📁 <span data-i18n="audioBtn">Audio File</span> <input type="file" id="fileaudio" accept="audio/*"></label>
+      <button id="play" class="primary">▶ <span data-i18n="play">Play</span></button>
+      <button id="pause">⏸ <span data-i18n="pause">Pause</span></button>
+      <button id="rewind">⏮ <span data-i18n="rewind">Rewind</span></button>
+      <span id="time">0.00 / 192.02</span>
+    </div>
+    <div class="row">
+      <input type="range" id="seek" min="0" max="1000" value="0" step="1">
+    </div>
+  </div>
+
+  <!-- Translation Preset Bar -->
+  <div class="preset-bar">
+    <label data-i18n="presetLabel">Translation Preset:</label>
+    <select id="presetSelect" style="flex: 1;">
+      <option value="default" selected>Original (Default English)</option>
+      <option value="japanese">Original Japanese (JP)</option>
+      <option value="cozyinn">Cozy Inn</option>
+      <option value="lazydesman">LazyDesman</option>
+      <option value="dumpycats">DumpyCats</option>
+      <option value="deltamusic">DeltaMusic (RU)</option>
+    </select>
+  </div>
+
+  <!-- Visual Settings -->
+  <div class="panel">
+    <div class="panel-title" data-i18n="visualTitle">Visual & Font Settings</div>
+    <div class="row">
+      <div class="color-picker-group">
+        <span data-i18n="unsungColor">Unsung Text:</span>
+        <input type="color" id="colUnsung" value="#ffff00">
+      </div>
+      <div class="color-picker-group">
+        <span data-i18n="unsungOutline">Unsung Outline:</span>
+        <input type="color" id="colOutUnsung" value="#000000">
+      </div>
+      <div class="color-picker-group">
+        <span data-i18n="sungColor">Sung Text:</span>
+        <input type="color" id="colSung" value="#00ff00">
+      </div>
+      <div class="color-picker-group">
+        <span data-i18n="sungOutline">Sung Outline:</span>
+        <input type="color" id="colOutSung" value="#ffffff">
+      </div>
+      <div class="color-picker-group">
+        <span data-i18n="bgColor">Background Color:</span>
+        <input type="color" id="colBg" value="#060913">
+      </div>
+    </div>
+    <div class="row">
+      <label><span data-i18n="textSize">Text Scale:</span> 
+        <input type="range" id="sizeSlider" min="0.6" max="3.0" step="0.05" value="1.35" style="width: 140px">
+        <span id="sizeVal">1.35x</span>
+      </label>
+      <label style="margin-left: 15px;"><span data-i18n="textPos">Position:</span>
+        <select id="posSelect">
+          <option value="top" data-i18n="posTop">Top</option>
+          <option value="center" data-i18n="posCenter" selected>Center</option>
+          <option value="bottom" data-i18n="posBottom">Bottom</option>
+        </select>
+      </label>
+    </div>
+  </div>
+
+  <!-- Lyrics Editor -->
+  <details>
+    <summary>📝 <span data-i18n="editorLyricsTitle">Lyrics Editor & Sync Lines (JSON)</span></summary>
+    <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+      <textarea id="linesJson" style="height: 220px;"></textarea>
+      <div class="row">
+        <button id="applyLinesBtn" class="primary">✔ <span data-i18n="applyLines">Apply Lyrics</span></button>
+        <button id="formatLinesBtn">🧹 <span data-i18n="formatJson">Format JSON</span></button>
+      </div>
+    </div>
+  </details>
+
+  <!-- Timing Editor -->
+  <details>
+    <summary>🎵 <span data-i18n="editorNotesTitle">Timing, Notes & Beats (JSON)</span></summary>
+    <div class="editor-grid">
+      <div class="editor-box">
+        <label>NOTETIME (Note Start Seconds):</label>
+        <textarea id="notetimeJson"></textarea>
+      </div>
+      <div class="editor-box">
+        <label>NOTEEND (Note End Seconds):</label>
+        <textarea id="noteendJson"></textarea>
+      </div>
+      <div class="editor-box">
+        <label>BEATTIME (Glow Beat Timings):</label>
+        <textarea id="beattimeJson"></textarea>
+      </div>
+    </div>
+    <div class="row" style="margin-top: 12px;">
+      <button id="applyNotesBtn" class="primary">✔ <span data-i18n="applyNotes">Apply Timings & Beats</span></button>
+      <button id="formatNotesBtn">🧹 <span data-i18n="formatJson">Format JSON</span></button>
+      <button id="resetDefaultsBtn" style="margin-left: auto;">🔄 <span data-i18n="resetDefaults">Reset Defaults</span></button>
+    </div>
+  </details>
+
+</div>
+
+<audio id="audio"></audio>
+
+<script>
+"use strict";
+
+// ==== TRANSLATIONS ====
+const i18nData = {
+  en: {
+    langLabel: "Interface Language:",
+    audioBtn: "Audio File",
+    play: "Play",
+    pause: "Pause",
+    rewind: "Rewind",
+    presetLabel: "Translation Preset:",
+    visualTitle: "Visual & Font Settings",
+    unsungColor: "Unsung Text:",
+    unsungOutline: "Unsung Outline:",
+    sungColor: "Sung Text:",
+    sungOutline: "Sung Outline:",
+    bgColor: "Background Color:",
+    textSize: "Text Scale:",
+    textPos: "Position:",
+    posTop: "Top",
+    posCenter: "Center",
+    posBottom: "Bottom",
+    editorLyricsTitle: "Lyrics Editor & Sync Lines (JSON)",
+    applyLines: "Apply Lyrics",
+    editorNotesTitle: "Timing, Notes & Beats (JSON)",
+    applyNotes: "Apply Timings & Beats",
+    formatJson: "Format JSON",
+    resetDefaults: "Reset Defaults"
+  },
+  ru: {
+    langLabel: "Язык интерфейса:",
+    audioBtn: "Аудио Файл",
+    play: "Старт",
+    pause: "Пауза",
+    rewind: "В начало",
+    presetLabel: "Пресет текста:",
+    visualTitle: "Настройки визуала и шрифта",
+    unsungColor: "Неспетый:",
+    unsungOutline: "Обводка:",
+    sungColor: "Спетый:",
+    sungOutline: "Обводка:",
+    bgColor: "Цвет фона:",
+    textSize: "Размер:",
+    textPos: "Позиция:",
+    posTop: "Сверху",
+    posCenter: "По центру",
+    posBottom: "Снизу",
+    editorLyricsTitle: "Редактор текста и строк (JSON)",
+    applyLines: "Применить текст",
+    editorNotesTitle: "Редактор нот и битов (JSON)",
+    applyNotes: "Применить тайминги",
+    formatJson: "Форматировать JSON",
+    resetDefaults: "Сбросить по умолчанию"
+  }
+};
+
+let currentLang = 'en';
+
+function setLanguage(lang) {
+  currentLang = lang;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (i18nData[lang][key]) {
+      el.textContent = i18nData[lang][key];
+    }
+  });
+
+  document.getElementById('btnLangEN').classList.toggle('active', lang === 'en');
+  document.getElementById('btnLangRU').classList.toggle('active', lang === 'ru');
+}
+
+// ==== DEFAULTS DATA (ENGLISH) ====
+const DEFAULT_NOTETIME = [
+  24, 24.38, 24.75, 25.03, 25.31, 25.5, 25.88, 26.25,
+  27.38, 27.75, 28.12, 28.5, 28.78, 29.06, 29.44, 29.62, 30,
+  30.75, 31.03, 31.31, 31.5, 31.78, 32.06, 32.44, 32.62, 32.81, 33,
+  33.75, 34.12, 34.5, 34.88, 35.25, 35.62,
+  36, 36.38, 36.75, 37.03, 37.31, 37.5, 37.88, 38.25,
+  39.38, 39.75, 40.12, 40.5, 40.78, 41.06, 41.44, 41.62, 42,
+  42.75, 43.03, 43.31, 43.5, 43.78, 44.06, 44.44, 44.62, 44.81, 45,
+  45.75, 46.12, 46.5, 46.88,
+  47.25, 47.62, 48, 48.75, 49.12, 49.5,
+  50.25, 50.53, 50.81, 51.75, 52.03, 52.31,
+  53.06, 53.62, 54,
+  55.12, 55.5, 55.88, 56.25, 56.62, 56.91,
+  57.94, 58.12, 58.31,
+  59.25, 59.62, 60, 60.75, 61.12, 61.5,
+  62.25, 62.53, 62.81, 63.75, 64.03, 64.31,
+  65.06, 65.62, 66,
+  67.12, 67.5, 67.88, 68.25, 68.62, 69,
+  70.5, 71.25,
+  144, 144.38, 144.75, 145.03, 145.31, 145.5, 145.88, 146.25,
+  147.38, 147.75, 148.12, 148.5, 148.78, 149.06, 149.44, 149.62, 150,
+  150.75, 151.03, 151.31, 151.5, 151.78, 152.06, 152.44, 152.62, 152.81, 153,
+  153.75, 154.12, 154.5, 154.88, 155.25, 155.62,
+  156, 156.38, 156.75, 157.03, 157.31, 157.5, 157.88, 158.25,
+  159.38, 159.75, 160.12, 160.5, 160.78, 161.06, 161.44, 161.62, 162,
+  162.75, 163.03, 163.31, 163.5, 163.78, 164.06, 164.44, 164.62, 164.81, 165,
+  165.75, 166.12, 166.5, 166.88,
+  167.25, 167.62, 168, 168.75, 169.12, 169.5,
+  170.25, 170.53, 170.81, 171.75, 172.03, 172.31,
+  173.06, 173.62, 174,
+  175.12, 175.5, 175.88, 176.25, 176.62, 176.91,
+  177.94, 178.12, 178.31,
+  179.25, 179.62, 180, 180.75, 181.12, 181.5,
+  182.25, 182.53, 182.81, 183.75, 184.03, 184.31,
+  185.06, 185.62, 186,
+  187.12, 187.5, 187.88, 188.25, 188.62, 189,
+  190.5, 191.25,
+];
+
+const DEFAULT_NOTEEND = [
+  24.09, 24.47, 25.03, 25.31, 25.5, 25.88, 25.97, 27,
+  27.75, 28.12, 28.5, 28.69, 28.88, 29.44, 29.62, 30, 30.75,
+  31.03, 31.31, 31.5, 31.78, 31.88, 32.44, 32.62, 32.81, 33, 33.75,
+  34.12, 34.5, 34.88, 35.25, 35.62, 36,
+  36.09, 36.47, 37.03, 37.31, 37.5, 37.88, 37.97, 39,
+  39.75, 40.12, 40.5, 40.69, 40.88, 41.44, 41.62, 42, 42.75,
+  43.03, 43.31, 43.5, 43.78, 43.88, 44.44, 44.62, 44.81, 45, 45.75,
+  46.12, 46.5, 46.88, 47.25,
+  47.62, 48, 48.75, 49.12, 49.5, 50.25,
+  50.44, 50.72, 51.38, 51.94, 52.22, 52.88,
+  53.62, 54, 54.75,
+  55.5, 55.88, 56.25, 56.62, 56.91, 57.75,
+  58.12, 58.31, 59.25,
+  59.62, 60, 60.75, 61.12, 61.5, 62.25,
+  62.44, 62.72, 63.38, 63.94, 64.22, 64.88,
+  65.62, 66, 66.75,
+  67.5, 67.88, 68.25, 68.62, 69, 70.5,
+  71.25, 72,
+  144.09, 144.47, 145.03, 145.31, 145.5, 145.88, 145.97, 147,
+  147.75, 148.12, 148.5, 148.69, 148.88, 149.44, 149.62, 150, 150.75,
+  151.03, 151.31, 151.5, 151.78, 151.88, 152.44, 152.62, 152.81, 153, 153.75,
+  154.12, 154.5, 154.88, 155.25, 155.62, 156,
+  156.09, 156.47, 157.03, 157.31, 157.5, 157.88, 157.97, 159,
+  159.75, 160.12, 160.5, 160.69, 160.88, 161.44, 161.62, 162, 162.75,
+  163.03, 163.31, 163.5, 163.78, 163.88, 164.44, 164.62, 164.81, 165, 165.75,
+  166.12, 166.5, 166.88, 167.25,
+  167.62, 168, 168.75, 169.12, 169.5, 170.25,
+  170.44, 170.72, 171.38, 171.94, 172.22, 172.88,
+  173.62, 174, 174.75,
+  175.5, 175.88, 176.25, 176.62, 176.91, 177.75,
+  178.12, 178.31, 179.25,
+  179.62, 180, 180.75, 181.12, 181.5, 182.25,
+  182.44, 182.72, 183.38, 183.94, 184.22, 184.88,
+  185.62, 186, 186.75,
+  187.5, 187.88, 188.25, 188.62, 189, 190.5,
+  191.25, 192,
+];
+
+const DEFAULT_BEATTIME = [
+  47.25, 47.62, 48.19, 48.56, 48.94, 49.31, 49.67, 50.04, 50.42, 50.79, 51.17, 51.54, 51.92, 52.29, 52.67, 53.04, 53.42, 53.79,
+  54.17, 54.54, 54.92, 55.29, 55.67, 56.04, 56.42, 56.79, 57.17, 57.54, 57.92, 58.29, 58.5, 58.78, 59.25, 59.53,
+  60.17, 60.54, 60.92, 61.29, 61.67, 62.04, 62.42, 62.79, 63.17, 63.54, 63.92, 64.29, 64.67, 65.04, 65.42, 65.79,
+  66.17, 66.54, 66.92, 67.29, 67.67, 68.04, 68.42, 68.79, 69, 69.09, 69.19, 69.28, 69.38, 69.47, 69.56, 69.66,
+  69.75, 69.84, 69.94, 70.03, 70.12, 70.22, 70.31, 70.41, 70.5, 71.25,
+  167.25, 167.62, 168.19, 168.56, 168.94, 169.31, 169.67, 170.04, 170.42, 170.79, 171.17, 171.54, 171.92, 172.29, 172.67, 173.04,
+  173.42, 173.79, 174.17, 174.54, 174.92, 175.29, 175.67, 176.04, 176.42, 176.79, 177.17, 177.54, 177.92, 178.29,
+  178.5, 178.78, 179.25, 179.53, 180.17, 180.54, 180.92, 181.29, 181.67, 182.04, 182.42, 182.79, 183.17, 183.54,
+  183.92, 184.29, 184.67, 185.04, 185.42, 185.79, 186.17, 186.54, 186.92, 187.29, 187.67, 188.04, 188.42, 188.79,
+  189, 189.09, 189.19, 189.28, 189.38, 189.47, 189.56, 189.66, 189.75, 189.84, 189.94, 190.03, 190.12, 190.22,
+  190.31, 190.41, 190.5,
+];
+
+const DEFAULT_LINES = [
+  { time: 0, text: "" },
+  { time: 24, text: "Ten feet twen-ty, the Flow-er Man" },
+  { time: 27.38, text: "Is wai-ting for the touch of his hand" },
+  { time: 30.75, text: "Straight-en-ing pe-tals out with-out a plan" },
+  { time: 33.75, text: "Like the ev-ery dai-ly" },
+  { time: 36, text: "Wish that bo-thers the Flow-er Man" },
+  { time: 39.38, text: "Could I do some-thing to make him laugh?" },
+  { time: 42.75, text: "In-side my lit-tle cham-ber made of glass", advance: 0.22 },
+  { time: 45.75, text: "So he lived the" },
+  { time: 47.25, text: "Flow-er Man, Flow-er Man" },
+  { time: 50.25, text: "With his heart in the sand" },
+  { time: 53.06, text: "So he stands" },
+  { time: 55.12, text: "To watch the whole wide world" },
+  { time: 57.94, text: "From a can" },
+  { time: 59.25, text: "Way up high in the sky", advance: 0.22 },
+  { time: 62.25, text: "With the sun in his eyes" },
+  { time: 65.06, text: "Ain't it nice?" },
+  { time: 67.12, text: "The life for-ev-er for" },
+  { time: 70.5, text: "Flow-ers", advance: 0.22 },
+  { time: 72, text: "", hide: true },
+
+  { time: 144, text: "Ten feet twen-ty, the Flow-er Man" },
+  { time: 147.38, text: "Is wai-ting for the touch of his hand" },
+  { time: 150.75, text: "Fal-len to pie-ces still with-out a plan", advance: 0.22 },
+  { time: 153.75, text: "Yet the ev-ery dai-ly", advance: 0.22 },
+  { time: 156, text: "Hope that pow-ered the Flow-er Man" },
+  { time: 159.38, text: "Would ne-ver cow-er off of its path", advance: 0.22 },
+  { time: 162.75, text: "E-ven if bro-ken I am more than glass" },
+  { time: 165.75, text: "So he lived the" },
+  { time: 167.25, text: "Flow-er Man, Flow-er Man" },
+  { time: 170.25, text: "With his heart in the sand" },
+  { time: 173.06, text: "So he stands" },
+  { time: 175.12, text: "To watch the whole wide world" },
+  { time: 177.94, text: "From a can" },
+  { time: 179.25, text: "Way up high in the sky", advance: 0.22 },
+  { time: 182.25, text: "With the sun in your eyes" },
+  { time: 185.06, text: "Ain't it nice?" },
+  { time: 187.12, text: "The life for-ev-er for" },
+  { time: 190.5, text: "Flow-ers", advance: 0.22 },
+  { time: 192, text: "", hide: true }
+];
+
+// ==== JAPANESE ORIGINAL LINES ====
+const JAPANESE_LINES = [
+  { time: 0, text: "" },
+  { time: 24, text: "[10:尺]20の- - - - - - - -フラ-ワー-マン" },
+  { time: 27.38, text: "その-手-で-触-れ-て-よ" },
+  { time: 30.75, text: "こ-の-花-び-ら- -全-部" },
+  { time: 33.75, text: "整-え-て-よ" },
+  { time: 36, text: "Woo- -Woo- -愁-い-の-フラ-ワー-マン" },
+  { time: 39.38, text: "ガ-ラ-ス-の-器-の" },
+  { time: 42.75, text: "中-で-願-う-の-は" },
+  { time: 45.75, text: "あ-の-笑-顔" },
+  { time: 47.25, text: "Flow-er- -Man, -Flow-er- -Man" },
+  { time: 50.25, text: "土-の- -奥-へ" },
+  { time: 53.06, text: "根-を-張-り" },
+  { time: 55.12, text: "世-界-を-見-る" },
+  { time: 57.94, text: "空-に" },
+  { time: 59.25, text: "高-く- -注-ぐ" },
+  { time: 62.25, text: "光- -浴-び-て" },
+  { time: 65.06, text: "日-々-は" },
+  { time: 67.12, text: "続-い-て-ゆ-く" },
+  { time: 70.5, text: "フラ-ワ-ーズ" },
+  { time: 72, text: "", hide: true },
+
+  { time: 144, text: "[10:尺]20の- - - - - - - -フラ-ワー-マン" },
+  { time: 147.38, text: "その-手-で-触-れ-て-よ" },
+  { time: 150.75, text: "砕-け-散-る-器" },
+  { time: 153.75, text: "力-に-変-え" },
+  { time: 156, text: "Oh- -Oh- -恐-れ-ぬ-フラ-ワー-マン" },
+  { time: 159.38, text: "お-の-れ-の-道-へ-と" },
+  { time: 162.75, text: "ガ-ラ-ス-が-砕-け-たっ-て" },
+  { time: 165.75, text: "生-き-る-よ" },
+  { time: 167.25, text: "Flow-er- -Man, -Flow-er- -Man" },
+  { time: 170.25, text: "土-の- -奥-へ" },
+  { time: 173.06, text: "根-を-張-り" },
+  { time: 175.12, text: "世-界-を-見-る" },
+  { time: 177.94, text: "空-に" },
+  { time: 179.25, text: "高-く- -注-ぐ" },
+  { time: 182.25, text: "光- -浴-び-て" },
+  { time: 185.06, text: "日-々-は" },
+  { time: 187.12, text: "続-い-て-ゆ-く" },
+  { time: 190.5, text: "フラ-ワ-ーズ" },
+  { time: 192, text: "", hide: true }
+];
+
+// ==== COZY INN PRESET LINES ====
+const COZYINN_LINES = [
+  { time: 0, text: "" },
+  { time: 24, text: "Бес-по-доб-ный ге-рой цве-тов," },
+  { time: 27.38, text: "Что у-вя-да-ет без тёп-лых слов" },
+  { time: 30.75, text: "И пла-ны не стро-ит — как ле-пе-сток" },
+  { time: 33.75, text: "он ле-тит по ве-тру" },
+  { time: 36, text: "Что гру-стишь ты, ге-рой цве-тов?" },
+  { time: 39.38, text: "От-дать го-тов всю сво-ю лю-бовь" },
+  { time: 42.75, text: "Лишь бы у-лыб-ку смог у-ви-деть вновь" },
+  { time: 45.75, text: "Сквозь ви-три-ну" },
+  { time: 47.25, text: "Flow-er Man, Flow-er Man" },
+  { time: 50.25, text: "Сер-дце скрыл под зем-лёй" },
+  { time: 53.06, text: "И за-стыл," },
+  { time: 55.12, text: "чтоб бе-лый свет у-зреть" },
+  { time: 57.94, text: "из гор-шка" },
+  { time: 59.25, text: "И под-нял он гла-за" },
+  { time: 62.25, text: "Вы-со-ко в не-бе-са" },
+  { time: 65.06, text: "Дни ле-тят" },
+  { time: 67.12, text: "А вме-сте с тем ра-стут" },
+  { time: 70.5, text: "цве-то-чки" },
+  { time: 72, text: "", hide: true },
+
+  { time: 144, text: "Бес-по-доб-ный ге-рой цве-тов," },
+  { time: 147.38, text: "Всё у-вя-да-ет без тёп-лых слов" },
+  { time: 150.75, text: "И пла-нов не стро-ил — как ле-пе-сток" },
+  { time: 153.75, text: "На ку-ски ра-зо-рван" },
+  { time: 156, text: "Наш бес-страш-ный ге-рой цве-тов," },
+  { time: 159.38, text: "Сво-ей до-ро-гой ид-ти го-тов." },
+  { time: 162.75, text: "Пусть ра-зо-бьёт-ся вдре-без-ги сте-кло" },
+  { time: 165.75, text: "Он силь-не-е" },
+  { time: 167.25, text: "Flow-er Man, Flow-er Man" },
+  { time: 170.25, text: "Сер-дце скрыл под зем-лёй" },
+  { time: 173.06, text: "И за-стыл," },
+  { time: 175.12, text: "чтоб бе-лый свет у-зреть" },
+  { time: 177.94, text: "из гор-шка" },
+  { time: 179.25, text: "И по-днял ты гла-за" },
+  { time: 182.25, text: "Вы-со-ко в не-бе-са" },
+  { time: 185.06, text: "Дни ле-тят" },
+  { time: 187.12, text: "А вме-сте с тем рас-тут" },
+  { time: 190.5, text: "цве-то-чки" },
+  { time: 192, text: "", hide: true }
+];
+
+// ==== LAZYDESMAN PRESET LINES ====
+const LAZYDESMAN_LINES = [
+  { time: 0, text: "" },
+  { time: 23.98, text: "Рас-цве-тай, о, ге-рой цве-тов," },
+  { time: 27.36, text: "Ру-ки при-кос-но-вения не жди," },
+  { time: 30.73, text: "По-мыс-ла нет, но ле-пест-ки тя-ни," },
+  { time: 33.73, text: "Пусть ми-ну-ли го-ды" },
+  { time: 35.98, text: "Не тре-вожь-ся, ге-рой цве-тов," },
+  { time: 39.36, text: "По-бе-ги сме-хом сво-им ороши," },
+  { time: 42.73, text: "Из-—под стек-ла тщет-ны на-ши моль-бы." },
+  { time: 45.73, text: "Но ско-ре-е" },
+  { time: 47.23, text: "Рас-цве-тай, Рас-цве-тай" },
+  { time: 50.23, text: "В грунте серд-це ос-тавь," },
+  { time: 53.04, text: "Гор-до встань" },
+  { time: 55.10, text: "И по-смот-ри на мир" },
+  { time: 57.92, text: "Без те-бя." },
+  { time: 59.23, text: "Вы-со-та — не бе-да," },
+  { time: 62.23, text: "Солн-це гре-ет гла-за," },
+  { time: 65.04, text: "Кра-со-та!" },
+  { time: 67.10, text: "Ос-тань-ся жить цвет-ком" },
+  { time: 70.48, text: "Веч-но" },
+  { time: 71.98, text: "", hide: true },
+
+  { time: 143.98, text: "Рас-цве-тай, о, ге-рой цве-тов," },
+  { time: 147.36, text: "Ру-ки при-кос-но-вения не жди," },
+  { time: 150.73, text: "Пусть раз-ле-те-лись ле-пест-ки тво-и," },
+  { time: 153.73, text: "Но ми-ну-ли го-ды." },
+  { time: 155.98, text: "Путь тер-нист, о, ге-рой цве-тов," },
+  { time: 159.36, text: "Да-дут пло-ды тво-и труды" },
+  { time: 162.73, text: "Вос-ста-нем вмес-те мы про-тив судь-бы" },
+  { time: 165.73, text: "Так ско-ре-е" },
+  { time: 167.23, text: "Рас-цве-тай, Рас-цве-тай" },
+  { time: 170.23, text: "В грунте серд-це ос-тавь" },
+  { time: 173.04, text: "Гор-до встань" },
+  { time: 175.10, text: "И по-смот-ри на мир" },
+  { time: 177.92, text: "Без те-бя" },
+  { time: 179.23, text: "Вы-со-та не бе-да" },
+  { time: 182.23, text: "Солн-це гре-ет гла-за" },
+  { time: 185.04, text: "Кра-со-та!" },
+  { time: 187.10, text: "Ос-тань-ся жить цвет-ком" },
+  { time: 190.48, text: "Веч-но" },
+  { time: 191.98, text: "", hide: true }
+];
+
+// ==== DUMPYCATS PRESET LINES ====
+const DUMPYCATS_LINES = [
+  { time: -0.02, text: "" },
+  { time: 23.98, text: "Статный и скромный, о, Цвето-вод" },
+  { time: 27.36, text: "Рук тепло-ту во сне при-зо-вёт." },
+  { time: 30.73, text: "Каж-дый день хо-лит ле-пест-ки не-жно." },
+  { time: 33.73, text: "Пусть же то-же са-мое" },
+  { time: 35.98, text: "Де-ла-ет в ти-ши-не Цвето-вод." },
+  { time: 39.36, text: "Мо-жет, за стек-лом смо-гу за-ба-вить вас?" },
+  { time: 42.73, text: "В мо-ём скром-ном те-ре-мке, что зо-вё-тся до-мом." },
+  { time: 45.73, text: "Жил в нём да был" },
+  { time: 47.23, text: "Той по-рой Цвето-вод." },
+  { time: 50.23, text: "У пе-сча-ных до-рог" },
+  { time: 53.04, text: "За ми-ром сле-дил," },
+  { time: 55.10, text: "Что во-кру-г ра-ссти-ла-лся сплошь," },
+  { time: 57.92, text: "Из гор-шка," },
+  { time: 59.23, text: "За гор-дой вы-си гра-нью." },
+  { time: 62.23, text: "Сле-пя-щих лу-чей си-я-нье." },
+  { time: 65.04, text: "О, за-чем ве-чно жить" },
+  { time: 67.10, text: "В этом ми-ре, ска-жи," },
+  { time: 70.48, text: "Цве-там?" },
+  { time: 71.98, text: "", hide: true },
+
+  { time: 143.98, text: "Статный и скромный, о, Цвето-вод" },
+  { time: 147.36, text: "Рук тепло-ту во сне при-зо-вёт." },
+  { time: 150.73, text: "Да-же весь ра-ско-лот, о пла-не мол-чи-ит." },
+  { time: 153.73, text: "Всё рав-но то же са-мое" },
+  { time: 155.98, text: "Де-ла-ет в ти-ши-не Цвето-вод," },
+  { time: 159.36, text: "Ни за что не сво-ра-чи-ва-ет с пу-ти." },
+  { time: 162.73, text: "Сквозь ско-лы вид-но, я больше чем прос-то стекло." },
+  { time: 165.73, text: "Жил в нём да был" },
+  { time: 167.23, text: "Той по-рой Цвето-вод." },
+  { time: 170.23, text: "У пе-сча-ных до-рог" },
+  { time: 173.04, text: "За ми-ром сле-дил," },
+  { time: 175.10, text: "Что во-кру-г ра-ссти-ла-лся сплошь," },
+  { time: 177.92, text: "Из гор-шка," },
+  { time: 179.23, text: "За гор-дой вы-си гра-нью." },
+  { time: 182.23, text: "Солн-це в тво-ем взгля-де си-я-ет." },
+  { time: 185.04, text: "О, за-чем ве-чно жить" },
+  { time: 187.10, text: "В этом ми-ре, ска-жи," },
+  { time: 190.48, text: "Цве-там?" },
+  { time: 191.98, text: "", hide: true }
+];
+
+// ==== DELTAMUSIC DATA ====
+const DELTAMUSIC_BEATTIME = [
+  48.19, 48.56, 48.94, 49.31, 49.67, 50.04, 50.42, 50.79, 51.17, 51.54, 51.92, 52.29, 52.67, 53.04, 53.42, 53.79,
+  54.17, 54.54, 54.92, 55.29, 55.67, 56.04, 56.42, 56.79, 57.17, 57.54, 57.92, 58.29, 58.5, 58.78, 59.25, 59.53,
+  60.17, 60.54, 60.92, 61.29, 61.67, 62.04, 62.42, 62.79, 63.17, 63.54, 63.92, 64.29, 64.67, 65.04, 65.42, 65.79,
+  66.17, 66.54, 66.92, 67.29, 67.67, 68.04, 68.42, 68.79, 69, 69.09, 69.19, 69.28, 69.38, 69.47, 69.56, 69.66,
+  69.75, 69.84, 69.94, 70.03, 70.12, 70.22, 70.31, 70.41, 70.5, 71.25,
+  168.19, 168.56, 168.94, 169.31, 169.67, 170.04, 170.42, 170.79, 171.17, 171.54, 171.92, 172.29, 172.67, 173.04,
+  173.42, 173.79, 174.17, 174.54, 174.92, 175.29, 175.67, 176.04, 176.42, 176.79, 177.17, 177.54, 177.92, 178.29,
+  178.5, 178.78, 179.25, 179.53, 180.17, 180.54, 180.92, 181.29, 181.67, 182.04, 182.42, 182.79, 183.17, 183.54,
+  183.92, 184.29, 184.67, 185.04, 185.42, 185.79, 186.17, 186.54, 186.92, 187.29, 187.67, 188.04, 188.42, 188.79,
+  189, 189.09, 189.19, 189.28, 189.38, 189.47, 189.56, 189.66, 189.75, 189.84, 189.94, 190.03, 190.12, 190.22,
+  190.31, 190.41, 190.5,
+];
+
+const DELTAMUSIC_LINES = [
+  { time: 0, text: "" },
+  { time: 24, text: "Де-сять двад-цать Че-ло-век Цветы" },
+  { time: 27.38, text: "Всё ждёт когда кос-нёт-ся его ру-ка" },
+  { time: 30.75, text: "Пра-вит ле-пест-ки на-вер-ня-ка" },
+  { time: 33.75, text: "Слов-но е-же-днев-но" },
+  { time: 36, text: "Грусть тер-за-ет е-го слег-ка" },
+  { time: 39.38, text: "Как же за-ста-вить е-го шу-тить" },
+  { time: 42.75, text: "В кол-бе стек-лян-ной где мне нужно жить", advance: 0.22 },
+  { time: 45.75, text: "" },
+  { time: 47.25, text: "Че-ло-век цве-ты" },
+  { time: 50.25, text: "Пря-чет серд-це в песке" },
+  { time: 53.06, text: "И сто-ит" },
+  { time: 55.12, text: "Чтоб смот-реть на весь мир" },
+  { time: 57.94, text: "Сквозь стек-ло" },
+  { time: 59.25, text: "Вы-со-ко в не-бесах", advance: 0.22 },
+  { time: 62.25, text: "С ярким солнцем в гла-зах" },
+  { time: 65.06, text: "Кра-со-та" },
+  { time: 67.12, text: "Жизнь что на-век да-на" },
+  { time: 70.5, text: "Цве-там", advance: 0.22 },
+  { time: 72, text: "", hide: true },
+
+  { time: 144, text: "Де-сять двад-цать Че-ло-век Цветы" },
+  { time: 147.38, text: "Всё ждёт когда кос-нёт-ся его ру-ка" },
+  { time: 150.75, text: "Слом-лен на час-ти и цель да-ле-ка", advance: 0.22 },
+  { time: 153.75, text: "Но на-деж-да гре-ет", advance: 0.22 },
+  { time: 156, text: "И спа-са-ет е-го по-ка" },
+  { time: 159.38, text: "С вер-но-го курса уж не сой-ти", advance: 0.22 },
+  { time: 162.75, text: "Хоть я и раз-бит силь-не-е стек-ла" },
+  { time: 165.75, text: "" },
+  { time: 167.25, text: "Че-ло-век цве-ты" },
+  { time: 170.25, text: "Пря-чет серд-це в песке" },
+  { time: 173.06, text: "И сто-ит" },
+  { time: 175.12, text: "Чтоб смот-реть на весь мир" },
+  { time: 177.94, text: "Сквозь стек-ло" },
+  { time: 179.25, text: "Вы-со-ко в не-бесах", advance: 0.22 },
+  { time: 182.25, text: "С ярким солнцем в гла-зах" },
+  { time: 185.06, text: "Кра-со-та" },
+  { time: 187.12, text: "Жизнь что на-век да-на" },
+  { time: 190.5, text: "Цве-там", advance: 0.22 },
+  { time: 192, text: "", hide: true }
+];
+
+// Preset Data Store
+const TEXT_PRESETS = {
+  default: {
+    lines: DEFAULT_LINES,
+    notetime: DEFAULT_NOTETIME,
+    noteend: DEFAULT_NOTEEND,
+    beattime: DEFAULT_BEATTIME
+  },
+  japanese: {
+    lines: JAPANESE_LINES,
+    notetime: DEFAULT_NOTETIME,
+    noteend: DEFAULT_NOTEEND,
+    beattime: DEFAULT_BEATTIME
+  },
+  cozyinn: {
+    lines: COZYINN_LINES,
+    notetime: DEFAULT_NOTETIME,
+    noteend: DEFAULT_NOTEEND,
+    beattime: DEFAULT_BEATTIME
+  },
+  lazydesman: {
+    lines: LAZYDESMAN_LINES,
+    notetime: DEFAULT_NOTETIME,
+    noteend: DEFAULT_NOTEEND,
+    beattime: DEFAULT_BEATTIME
+  },
+  dumpycats: {
+    lines: DUMPYCATS_LINES,
+    notetime: DEFAULT_NOTETIME,
+    noteend: DEFAULT_NOTEEND,
+    beattime: DEFAULT_BEATTIME
+  },
+  deltamusic: {
+    lines: DELTAMUSIC_LINES,
+    notetime: DEFAULT_NOTETIME,
+    noteend: DEFAULT_NOTEEND,
+    beattime: DELTAMUSIC_BEATTIME
+  }
+};
+
+let NOTETIME = [...DEFAULT_NOTETIME];
+let NOTEEND = [...DEFAULT_NOTEEND];
+let BEATTIME = [...DEFAULT_BEATTIME];
+let LINES = JSON.parse(JSON.stringify(DEFAULT_LINES));
+
+const RS = 2;
+let SONG_LENGTH = 192.024;
+const BPM = 160;
+
+const GLOW_RANGES = [[46, 120], [166, 999]];
+const GLOW_WHITE_LINES = [18, 37];
+const GLOW_WHITE_START = { 18: 71, 37: 191 };
+
+// ==== EXPANDED CANVAS SURFACE ====
+const SURFACE_W = 3200 * RS;
+const SURFACE_H = 300 * RS;
+const CANVAS_W = 1280;
+const CANVAS_H = 960;
+const HSPACE = 16 * RS;
+const VSPACE = 36 * RS;
+const OUTLINE = 2.5 * RS;
+const FONT_SIZE = 28 * RS;
+const FONT_FAMILY = '"DTFont", monospace';
+const TEXT_CX = SURFACE_W / 2;
+
+// ==== DYNAMIC SETTINGS ====
+let COL_UNSUNG = '#ffff00';
+let COL_SUNG = '#00ff00';
+let COL_OUT_UNSUNG = '#000000';
+let COL_OUT_SUNG = '#ffffff';
+let COL_BG = '#060913';
+
+let USER_SCALE = 1.35;
+let TEXT_POSITION = 'center';
+
+// ==== LAYOUT ENGINE ====
+function layoutText(text) {
+  if (!text) return { chars: [], syllables: [] };
+
+  const chars = [];
+  const syllables = [];
+  let curSyl = null;
+
+  const stripped = text.replace(/-/g, "");
+  const lb = stripped.indexOf('#');
+  const firstLen = lb >= 0 ? lb : stripped.length;
+  const secondLen = lb >= 0 ? stripped.length - lb - 1 : 0;
+
+  let length = firstLen;
+  let width = length * HSPACE;
+  let writex = TEXT_CX - width / 2 + HSPACE / 2;
+  let writey = lb >= 0 ? (SURFACE_H / 2 - VSPACE / 2 + 6 * RS) : (SURFACE_H / 2);
+
+  let hspace = HSPACE;
+  let scale = 1;
+  let midword = false;
+  let prealign = true;
+
+  for (let i = 0; i < text.length; i++) {
+    let letter = text[i];
+
+    if (prealign) {
+      if (letter === ' ') { writex -= hspace; length--; continue; }
+      prealign = false;
+    }
+
+    if (letter === '[') {
+      i++;
+      let digit = 0;
+      while (i < text.length && /\d/.test(text[i])) {
+        digit = digit * 10 + parseInt(text[i], 10);
+        i++;
+      }
+      if (text[i] === ':') i++;
+      let subcount = 0;
+      for (let j = i; j < text.length; j++) {
+        const c = text[j];
+        if (c === ']') break;
+        if (c !== '-' && c !== '+' && c !== '<' && c !== '>') subcount++;
+      }
+      const subscale = digit || subcount;
+      scale = subcount > 0 ? subscale / subcount : 1;
+      hspace = HSPACE * scale;
+      writex += (-HSPACE / 2 + hspace / 2);
+      letter = text[i];
+    } else if (letter === ']') {
+      scale = 1;
+      writex += (-hspace / 2 + HSPACE / 2);
+      hspace = HSPACE;
+      continue;
+    }
+
+    if (letter === ' ') {
+      if (midword) {
+        curSyl.endX = writex - hspace / 2 + 2 * RS;
+        syllables.push(curSyl);
+        curSyl = null;
+        midword = false;
+      }
+      writex += hspace;
+      continue;
+    }
+
+    if (letter === '-') {
+      if (midword) {
+        curSyl.endX = writex - hspace / 2 + 2 * RS;
+        syllables.push(curSyl);
+      }
+      curSyl = { startX: writex - hspace / 2 + 2 * RS };
+      midword = true;
+      continue;
+    }
+
+    if (letter === '#') {
+      if (midword) {
+        curSyl.endX = writex - hspace / 2 + 2 * RS;
+        syllables.push(curSyl);
+        curSyl = null;
+        midword = false;
+      }
+      writey = SURFACE_H / 2 + VSPACE / 2 - 6 * RS;
+      length = secondLen;
+      width = length * HSPACE;
+      writex = TEXT_CX - width / 2 + HSPACE / 2;
+      continue;
+    }
+
+    if (!midword) {
+      curSyl = { startX: writex - hspace / 2 - 2 * RS };
+      midword = true;
+    }
+    chars.push({ ch: letter, x: writex, y: writey, scale });
+    writex += hspace;
+  }
+  if (midword && curSyl) {
+    curSyl.endX = writex - HSPACE / 2 + 2 * RS;
+    syllables.push(curSyl);
+  }
+  for (const s of syllables) {
+    if (s.endX == null) s.endX = s.startX + HSPACE;
+    if (s.startX == null) s.startX = 0;
+  }
+  return { chars, syllables };
+}
+
+// ==== STATE ====
+const state = {
+  trackpos: 0,
+  last_trackpos: 0,
+  lyric_count: LINES.length,
+  lyric_time: LINES.map(l => l.time),
+  lyrics: LINES.map(l => l.text),
+  lyrics_index: 0,
+  current_layout: null,
+  update_lyrics: true,
+  lyric_start_index: 0,
+  maxnote: NOTETIME.length,
+  beat_index: 0,
+  beat_count: BEATTIME.length,
+  beat: 0,
+  strength: 0,
+};
+
+function reinitData() {
+  state.lyric_count = LINES.length;
+  state.lyric_time = LINES.map(l => l.time);
+  state.lyrics = LINES.map(l => l.text);
+  state.maxnote = NOTETIME.length;
+  state.beat_count = BEATTIME.length;
+  state.lyrics_index = 0;
+  state.lyric_start_index = 0;
+  state.beat_index = 0;
+  state.update_lyrics = true;
+}
+
+// ==== CANVAS ====
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+ctx.imageSmoothingEnabled = true;
+
+const renderSurf = document.createElement('canvas');
+renderSurf.width = SURFACE_W;
+renderSurf.height = SURFACE_H;
+const rc = renderSurf.getContext('2d');
+
+function drawTextLayer(cctx, layout, fillColor, outlineColor) {
+  cctx.font = `${FONT_SIZE}px ${FONT_FAMILY}`;
+  cctx.textAlign = 'center';
+  cctx.textBaseline = 'middle';
+
+  // Outline Stroke
+  cctx.fillStyle = outlineColor;
+  const offsets = [
+    [-OUTLINE, 0], [OUTLINE, 0], [0, -OUTLINE], [0, OUTLINE],
+    [-OUTLINE*0.7, -OUTLINE*0.7], [OUTLINE*0.7, -OUTLINE*0.7],
+    [-OUTLINE*0.7, OUTLINE*0.7], [OUTLINE*0.7, OUTLINE*0.7]
+  ];
+  for (const [ox, oy] of offsets) {
+    for (const c of layout.chars) {
+      cctx.save();
+      cctx.translate(c.x + ox, c.y + oy);
+      if (c.scale !== 1) cctx.scale(c.scale, 1);
+      cctx.fillText(c.ch, 0, 0);
+      cctx.restore();
+    }
+  }
+
+  // Text Fill
+  cctx.fillStyle = fillColor;
+  for (const c of layout.chars) {
+    cctx.save();
+    cctx.translate(c.x, c.y);
+    if (c.scale !== 1) cctx.scale(c.scale, 1);
+    cctx.fillText(c.ch, 0, 0);
+    cctx.restore();
+  }
+}
+
+function composeToRenderSurf(layout, progressPx, sungColor) {
+  rc.save();
+  rc.clearRect(0, 0, SURFACE_W, SURFACE_H);
+
+  // Unsung
+  rc.save();
+  rc.beginPath();
+  rc.rect(progressPx, 0, SURFACE_W - progressPx, SURFACE_H);
+  rc.clip();
+  drawTextLayer(rc, layout, COL_UNSUNG, COL_OUT_UNSUNG);
+  rc.restore();
+
+  // Sung
+  if (progressPx > 0) {
+    rc.save();
+    rc.beginPath();
+    rc.rect(0, 0, progressPx, SURFACE_H);
+    rc.clip();
+    drawTextLayer(rc, layout, sungColor, COL_OUT_SUNG);
+    rc.restore();
+  }
+  rc.restore();
+}
+
+function drawSurfaceCentered(destCtx, surf, cx, cy, sx, sy, alpha) {
+  const w = surf.width * sx;
+  const h = surf.height * sy;
+  destCtx.save();
+  destCtx.globalAlpha = Math.max(0, Math.min(1, alpha));
+  destCtx.drawImage(surf, cx - w / 2, cy - h / 2, w, h);
+  destCtx.restore();
+}
+
+// ==== STEP ====
+let lastFrame = 0;
+function updateStep(nowMs) {
+  const dt = lastFrame ? (nowMs - lastFrame) / 1000 : 0;
+  lastFrame = nowMs;
+
+  const audio = document.getElementById('audio');
+  const t = audio.currentTime || 0;
+  state.trackpos = t;
+
+  if (t < state.last_trackpos - 0.1) {
+    state.beat_index = 0;
+    state.lyrics_index = 0;
+    state.lyric_start_index = 0;
+    state.update_lyrics = true;
+  }
+  state.last_trackpos = t;
+
+  if (state.beat_index < state.beat_count && t >= BEATTIME[state.beat_index]) {
+    state.beat = 1;
+    state.beat_index++;
+  } else if (state.beat > 0) {
+    state.beat = Math.max(0, state.beat - dt / (60 / BPM));
+  }
+}
+
+// ==== MAIN DRAW LOOP ====
+function frame(nowMs) {
+  updateStep(nowMs);
+
+  ctx.fillStyle = COL_BG;
+  ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+
+  const t = state.trackpos;
+
+  if ((state.lyrics_index + 1) < state.lyric_count && t >= state.lyric_time[state.lyrics_index + 1]) {
+    state.lyrics_index++;
+    while ((state.lyrics_index + 1) < state.lyric_count && t >= state.lyric_time[state.lyrics_index + 1]) {
+      state.lyrics_index++;
+    }
+    state.update_lyrics = true;
+  } else if (state.lyrics_index > 0 && t < state.lyric_time[1]) {
+    state.lyrics_index = 0;
+    state.lyric_start_index = 0;
+    state.update_lyrics = true;
+  }
+
+  if (state.update_lyrics) {
+    const startTime = Math.max(0, state.lyric_time[state.lyrics_index]);
+    for (let i = state.lyric_start_index; i < state.maxnote; i++) {
+      if ((startTime + 0.03) < NOTEEND[i]) {
+        state.lyric_start_index = i;
+        break;
+      }
+    }
+    const currentLine = LINES[state.lyrics_index];
+    if (currentLine && !currentLine.hide && currentLine.text) {
+      state.current_layout = layoutText(currentLine.text);
+    } else {
+      state.current_layout = null;
+    }
+    state.update_lyrics = false;
+  }
+
+  const layout = state.current_layout;
+  const hasText = layout && layout.chars.length > 0;
+
+  let progressPx = 0;
+  let sungColor = COL_SUNG;
+  let extraPow = 0;
+
+  if (hasText && layout.syllables.length > 0) {
+    const syls = layout.syllables;
+    const maxlen = syls.length;
+    let currentNote = Math.max(0, maxlen - 1);
+    let lerp = 1;
+
+    const advance = LINES[state.lyrics_index]?.advance || 0;
+    const tAdj = t + advance;
+
+    for (let i = 0; i < maxlen; i++) {
+      const idx = i + state.lyric_start_index;
+      if (idx >= state.maxnote) break;
+      if (tAdj < NOTEEND[idx]) {
+        currentNote = Math.max(0, Math.min(i, maxlen - 1));
+        const nt = NOTETIME[idx];
+        const ne = NOTEEND[idx];
+        lerp = Math.max(0, Math.min(1, (tAdj - nt) / Math.max(1e-6, ne - nt)));
+        break;
+      }
+    }
+
+    const s = syls[currentNote];
+    progressPx = s.startX + (s.endX - s.startX) * lerp;
+    if (currentNote === 0 && state.lyric_start_index < state.maxnote &&
+        t < NOTETIME[state.lyric_start_index]) {
+      progressPx = 0;
+    }
+    progressPx = Math.round(progressPx / (2 * RS)) * (2 * RS);
+    progressPx = Math.max(0, Math.min(SURFACE_W, progressPx));
+
+    if (GLOW_WHITE_LINES.includes(state.lyrics_index)) {
+      const glowstart = GLOW_WHITE_START[state.lyrics_index] ?? state.lyric_time[state.lyrics_index];
+      extraPow = Math.max(0, Math.min(1, t - glowstart));
+      sungColor = lerpColor(COL_SUNG, '#ffffff', extraPow);
+    }
+
+    composeToRenderSurf(layout, progressPx, sungColor);
+  }
+
+  let inGlow = false;
+  for (const [a, b] of GLOW_RANGES) {
+    if (t >= a && t < b) { inGlow = true; break; }
+  }
+  if (inGlow) {
+    state.strength = Math.min(1, state.strength + 0.015);
+  } else if (state.strength > 0) {
+    state.strength = 0;
+  }
+
+  const drawCX = CANVAS_W / 2;
+  let drawCY;
+  const scaledH = (SURFACE_H / 2.5) * USER_SCALE;
+  if (TEXT_POSITION === 'top') {
+    drawCY = scaledH / 2 + 10 * RS;
+  } else if (TEXT_POSITION === 'center') {
+    drawCY = CANVAS_H / 2;
+  } else {
+    drawCY = CANVAS_H - scaledH / 2 - 10 * RS;
+  }
+
+  if (hasText) {
+    drawSurfaceCentered(ctx, renderSurf, drawCX, drawCY, USER_SCALE * 0.5, USER_SCALE * 0.5, 1.0);
+    if (state.strength > 0) {
+      const count = 8;
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      for (let i = 0; i < count; i++) {
+        const pow = (i + 1) / count;
+        const scaleG = (1 + (state.strength * pow) / 2 + state.beat / 10) * 0.5;
+        const a = (0.2 * state.strength * (1 - pow) + extraPow / 5);
+        drawSurfaceCentered(ctx, renderSurf, drawCX, drawCY,
+                            scaleG * USER_SCALE, scaleG * USER_SCALE,
+                            Math.max(0, Math.min(1, a)));
+      }
+      ctx.restore();
+    }
+  } else if (state.strength > 0) {
+    state.strength = Math.max(0, state.strength - 0.05);
+  }
+
+  const audio = document.getElementById('audio');
+  const seek = document.getElementById('seek');
+  document.getElementById('time').textContent =
+    `${t.toFixed(2)} / ${SONG_LENGTH.toFixed(2)}`;
+  if (audio.duration) {
+    SONG_LENGTH = audio.duration;
+    if (!seek.dragging) seek.value = Math.round((t / audio.duration) * 1000);
+  }
+
+  requestAnimationFrame(frame);
+}
+
+function lerpColor(a, b, k) {
+  const A = parseColor(a), B = parseColor(b);
+  return `rgb(${Math.round(A[0]+(B[0]-A[0])*k)},${Math.round(A[1]+(B[1]-A[1])*k)},${Math.round(A[2]+(B[2]-A[2])*k)})`;
+}
+
+function parseColor(c) {
+  if (c.startsWith('#')) {
+    const m = c.replace('#','');
+    return [parseInt(m.slice(0,2),16), parseInt(m.slice(2,4),16), parseInt(m.slice(4,6),16)];
+  }
+  const m = c.match(/\d+/g);
+  return [parseInt(m[0],10), parseInt(m[1],10), parseInt(m[2],10)];
+}
+
+// ==== CONTROLS & BINDINGS ====
+const audio = document.getElementById('audio');
+const fileInput = document.getElementById('fileaudio');
+const seek = document.getElementById('seek');
+
+fileInput.addEventListener('change', (e) => {
+  const f = e.target.files[0];
+  if (f) {
+    audio.src = URL.createObjectURL(f);
+    reinitData();
+  }
+});
+
+document.getElementById('play').onclick = () => audio.play();
+document.getElementById('pause').onclick = () => audio.pause();
+document.getElementById('rewind').onclick = () => {
+  audio.currentTime = 0;
+  reinitData();
+};
+
+seek.addEventListener('mousedown', () => { seek.dragging = true; });
+seek.addEventListener('mouseup',   () => { seek.dragging = false; });
+seek.addEventListener('input', () => {
+  if (audio.duration) {
+    audio.currentTime = (seek.value / 1000) * audio.duration;
+    reinitData();
+  }
+});
+
+document.getElementById('colUnsung').oninput = (e) => { COL_UNSUNG = e.target.value; state.update_lyrics = true; };
+document.getElementById('colSung').oninput = (e) => { COL_SUNG = e.target.value; state.update_lyrics = true; };
+document.getElementById('colOutUnsung').oninput = (e) => { COL_OUT_UNSUNG = e.target.value; state.update_lyrics = true; };
+document.getElementById('colOutSung').oninput = (e) => { COL_OUT_SUNG = e.target.value; state.update_lyrics = true; };
+document.getElementById('colBg').oninput = (e) => {
+  COL_BG = e.target.value;
+  document.getElementById('canvasBg').style.background = COL_BG;
+};
+
+const sizeSlider = document.getElementById('sizeSlider');
+const sizeVal = document.getElementById('sizeVal');
+sizeSlider.oninput = () => {
+  USER_SCALE = parseFloat(sizeSlider.value);
+  sizeVal.textContent = USER_SCALE.toFixed(2) + 'x';
+};
+
+document.getElementById('posSelect').onchange = (e) => {
+  TEXT_POSITION = e.target.value;
+};
+
+// ==== EDITORS & PRESETS ====
+const linesArea = document.getElementById('linesJson');
+const notetimeArea = document.getElementById('notetimeJson');
+const noteendArea = document.getElementById('noteendJson');
+const beattimeArea = document.getElementById('beattimeJson');
+
+function populateEditors() {
+  linesArea.value = JSON.stringify(LINES, null, 2);
+  notetimeArea.value = JSON.stringify(NOTETIME, null, 2);
+  noteendArea.value = JSON.stringify(NOTEEND, null, 2);
+  beattimeArea.value = JSON.stringify(BEATTIME, null, 2);
+}
+
+document.getElementById('presetSelect').onchange = (e) => {
+  const pKey = e.target.value;
+  const pData = TEXT_PRESETS[pKey] || TEXT_PRESETS.default;
+  LINES = JSON.parse(JSON.stringify(pData.lines));
+  NOTETIME = [...pData.notetime];
+  NOTEEND = [...pData.noteend];
+  BEATTIME = [...pData.beattime];
+  populateEditors();
+  reinitData();
+};
+
+document.getElementById('applyLinesBtn').onclick = () => {
+  try {
+    LINES = JSON.parse(linesArea.value);
+    reinitData();
+    alert(currentLang === 'ru' ? 'Текст успешно обновлен!' : 'Lyrics updated successfully!');
+  } catch (err) {
+    alert((currentLang === 'ru' ? 'Ошибка в JSON текста: ' : 'JSON Error: ') + err.message);
+  }
+};
+
+document.getElementById('applyNotesBtn').onclick = () => {
+  try {
+    NOTETIME = JSON.parse(notetimeArea.value);
+    NOTEEND = JSON.parse(noteendArea.value);
+    BEATTIME = JSON.parse(beattimeArea.value);
+    reinitData();
+    alert(currentLang === 'ru' ? 'Ноты и биты обновлены!' : 'Timings & Beats updated successfully!');
+  } catch (err) {
+    alert((currentLang === 'ru' ? 'Ошибка в JSON: ' : 'JSON Error: ') + err.message);
+  }
+};
+
+document.getElementById('formatLinesBtn').onclick = () => {
+  try {
+    linesArea.value = JSON.stringify(JSON.parse(linesArea.value), null, 2);
+  } catch (e) {
+    alert('Invalid JSON');
+  }
+};
+
+document.getElementById('formatNotesBtn').onclick = () => {
+  try {
+    notetimeArea.value = JSON.stringify(JSON.parse(notetimeArea.value), null, 2);
+    noteendArea.value = JSON.stringify(JSON.parse(noteendArea.value), null, 2);
+    beattimeArea.value = JSON.stringify(JSON.parse(beattimeArea.value), null, 2);
+  } catch (e) {
+    alert('Invalid JSON');
+  }
+};
+
+document.getElementById('resetDefaultsBtn').onclick = () => {
+  if (confirm(currentLang === 'ru' ? 'Сбросить все данные к исходным?' : 'Reset all data to defaults?')) {
+    document.getElementById('presetSelect').value = 'default';
+    NOTETIME = [...DEFAULT_NOTETIME];
+    NOTEEND = [...DEFAULT_NOTEEND];
+    BEATTIME = [...DEFAULT_BEATTIME];
+    LINES = JSON.parse(JSON.stringify(DEFAULT_LINES));
+    populateEditors();
+    reinitData();
+  }
+};
+
+document.getElementById('btnLangEN').onclick = () => setLanguage('en');
+document.getElementById('btnLangRU').onclick = () => setLanguage('ru');
+
+// INIT
+setLanguage('en');
+populateEditors();
+
+if (document.fonts && document.fonts.load) {
+  document.fonts.load(`${FONT_SIZE}px DTFont`).then(() => {
+    state.update_lyrics = true;
+  });
+}
+
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
