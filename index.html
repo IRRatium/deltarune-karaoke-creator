@@ -34,13 +34,11 @@
     align-items: center;
     box-shadow: 0 12px 32px rgba(0,0,0,0.8);
     border-bottom: 2px solid #1e293b;
-    overflow: hidden;
   }
 
   canvas {
     display: block;
     width: 100vw;
-    max-width: 100%;
     height: auto;
     max-height: 70vh;
     aspect-ratio: 4 / 3;
@@ -1012,10 +1010,10 @@ const GLOW_WHITE_LINES = [18, 37];
 const GLOW_WHITE_START = { 18: 71, 37: 191 };
 
 // ==== EXPANDED CANVAS SURFACE ====
-const SURFACE_W = 3200 * RS;
-const SURFACE_H = 300 * RS;
 const CANVAS_W = 1280;
 const CANVAS_H = 960;
+const SURFACE_W = CANVAS_W * RS;
+const SURFACE_H = 300 * RS;
 const HSPACE = 16 * RS;
 const VSPACE = 36 * RS;
 const OUTLINE = 2.5 * RS;
@@ -1371,7 +1369,8 @@ function frame(nowMs) {
 
   const drawCX = CANVAS_W / 2;
   let drawCY;
-  const scaledH = (SURFACE_H / 2.5) * USER_SCALE;
+  const baseScale = 0.5;
+  const scaledH = (SURFACE_H * baseScale) * USER_SCALE;
   if (TEXT_POSITION === 'top') {
     drawCY = scaledH / 2 + 10 * RS;
   } else if (TEXT_POSITION === 'center') {
@@ -1381,14 +1380,14 @@ function frame(nowMs) {
   }
 
   if (hasText) {
-    drawSurfaceCentered(ctx, renderSurf, drawCX, drawCY, USER_SCALE * 0.5, USER_SCALE * 0.5, 1.0);
+    drawSurfaceCentered(ctx, renderSurf, drawCX, drawCY, USER_SCALE * baseScale, USER_SCALE * baseScale, 1.0);
     if (state.strength > 0) {
       const count = 8;
       ctx.save();
       ctx.globalCompositeOperation = 'lighter';
       for (let i = 0; i < count; i++) {
         const pow = (i + 1) / count;
-        const scaleG = (1 + (state.strength * pow) / 2 + state.beat / 10) * 0.5;
+        const scaleG = (1 + (state.strength * pow) / 2 + state.beat / 10) * baseScale;
         const a = (0.2 * state.strength * (1 - pow) + extraPow / 5);
         drawSurfaceCentered(ctx, renderSurf, drawCX, drawCY,
                             scaleG * USER_SCALE, scaleG * USER_SCALE,
